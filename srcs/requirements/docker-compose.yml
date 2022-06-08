@@ -1,3 +1,5 @@
+version: "3.3"
+
 services:
   nginx:
     container_name: "nginx"
@@ -6,3 +8,36 @@ services:
     ports:
       - "443:443"
     restart: unless-stopped
+    volumes:
+      - /var/lib/docker/volumes/wordpress:/var/www/wordpress/
+    networks:
+      - inception
+
+  dbmaria:
+    container_name: "mariadb"
+    build: ./mariadb/
+    restart: unless-stopped
+    volumes:
+      - /var/lib/docker/volumes/db-data:/var/lib/mysql
+    networks:
+      - inception
+
+  wordpress:
+    container_name: "wordpress"
+    build: ./wordpress/
+    restart: unless-stopped
+    volumes:
+      - /var/lib/docker/volumes/wordpress:/var/www/wordpress/
+    networks:
+      - inception
+    depends_on:
+      - "dbmaria"
+
+networks:
+  inception:
+
+volumes:
+  db-data:
+    driver: local 
+  wordpress:
+    driver: local

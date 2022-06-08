@@ -4,8 +4,8 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install nginx -y
 
 EXPOSE 443
-COPY ./tool /tmp
-WORKDIR /tmp/
+COPY ./tool /tmp/build
+WORKDIR /tmp/build/
 
 #RUN rm -f /etc/nginx/sites-enabled/*
 RUN mv nginx.conf /etc/nginx/sites-available/nginx.conf
@@ -18,9 +18,6 @@ RUN mkdir -p /etc/nginx/ss1/
 RUN mv localhost.pem /etc/nginx/ss1/
 RUN mv localhost-key.pem /etc/nginx/ss1/
 RUN chmod -R 770 /etc/nginx/ss1/
-
-RUN mkdir /var/www/test
-RUN echo "oui" > /var/www/test/index.html
-RUN chmod -R 770 /var/www/test
+RUN chmod -R 777 /tmp/build
 
 CMD nginx -g 'daemon off;'
