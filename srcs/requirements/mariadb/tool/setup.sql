@@ -13,6 +13,3 @@ CREATE USER 'superuser'@'%' IDENTIFIED BY 'password';
 GRANT ALL PRIVILEGES ON *.* TO 'superuser'@'%' WITH GRANT OPTION;
 
 FLUSH PRIVILEGES;
-
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'newpass';
-flush privileges;

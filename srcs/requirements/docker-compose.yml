@@ -1,43 +1,46 @@
-version: "3.3"
+version: "3"
 
 services:
+  mariadb:
+    image: mariadb:inc
+    build: ./mariadb/
+    restart: unless-stopped
+    volumes:
+      - ~/data/maria:/var/lib/mysql
+    networks:
+      inception:
+    ports:
+      - "3306:3306"
+
   nginx:
-    container_name: "nginx"
+    image: nginx:inc
     build:
       context: ./nginx/
     ports:
       - "443:443"
     restart: unless-stopped
     volumes:
-      - /var/lib/docker/volumes/wordpress:/var/www/wordpress/
+      - ~/data/wp:/var/www/wordpress/
     networks:
-      - inception
-
-  dbmaria:
-    container_name: "mariadb"
-    build: ./mariadb/
-    restart: unless-stopped
-    volumes:
-      - /var/lib/docker/volumes/db-data:/var/lib/mysql
-    networks:
-      - inception
+      inception:
+    depends_on:
+      - wordpress
+    extra_hosts:
+      - "tcosse.42.fr:127.0.0.1"
 
   wordpress:
-    container_name: "wordpress"
+    image: wordpress:inc
     build: ./wordpress/
     restart: unless-stopped
     volumes:
-      - /var/lib/docker/volumes/wordpress:/var/www/wordpress/
+      - ~/data/wp:/var/www/wordpress/
     networks:
-      - inception
+      inception:
     depends_on:
-      - "dbmaria"
+      - mariadb
+    ports:
+      - "9000:9000"
 
 networks:
   inception:
-
-volumes:
-  db-data:
-    driver: local 
-  wordpress:
-    driver: local
+    driver: bridge

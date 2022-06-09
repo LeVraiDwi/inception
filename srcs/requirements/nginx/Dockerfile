@@ -1,23 +1,22 @@
 FROM debian:buster
 
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install nginx -y
+RUN apt-get install -y nginx openssl
 
 EXPOSE 443
-COPY ./tool /tmp/build
 WORKDIR /tmp/build/
 
-#RUN rm -f /etc/nginx/sites-enabled/*
-RUN mv nginx.conf /etc/nginx/sites-available/nginx.conf
-RUN ln -fs /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled/
+RUN rm /etc/nginx/sites-available/default
+RUN rm /etc/nginx/sites-enabled/default
+COPY ./tool/nginx.conf /etc/nginx/sites-available/default
+RUN ln -fs /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-RUN chmod 770 mkcert-v1.4.4-linux-amd64
-RUN ./mkcert-v1.4.4-linux-amd64 -install
-RUN ./mkcert-v1.4.4-linux-amd64 localhost
-RUN mkdir -p /etc/nginx/ss1/
-RUN mv localhost.pem /etc/nginx/ss1/
-RUN mv localhost-key.pem /etc/nginx/ss1/
-RUN chmod -R 770 /etc/nginx/ss1/
-RUN chmod -R 777 /tmp/build
+RUN mkdir -p /etc/nginx/ssl/
+
+RUN openssl req -newkey rsa:2048 -sha256 -x509 -days 365 -nodes -out /etc/nginx/ssl/tcosse.42.fr.crt -keyout /etc/nginx/ssl/tcosse.42.fr.key -subj "/C=FR/ST=Paris/CN=tcosse"
+
+RUN chmod 777 /etc/nginx/ssl/*
+RUN chmod -R 777 /var/www/
+RUN chown -R www-data:www-data /var/www/
 
 CMD nginx -g 'daemon off;'
