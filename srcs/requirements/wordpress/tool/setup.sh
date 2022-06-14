@@ -1,13 +1,14 @@
-sleep 5;
-if [ ! -f /var/www/wordress/wp-config.php ]; then
+mkdir -p /run/php
 
-	wp core --allow-root download --locale=fr_FR --force
+while ! mysql -h mariadb -u $DB_USER -p$DB_PW $DB_NAME -e "SELECT 'OK' AS status;"; do
+    sleep 5
+done
 
-	while [ ! -f /var/www/wordpress/wp-config.php ]; do
-		wp core config --allow-root --dbname="wordpress" --dbuser="tcosse" --dbpass="tcosse" --dbhost='mariadb:3306'
-	done
-	wp core install --allow-root --url='tcosse.42.fr' --title='wordpress inception' --admin_user='tcosse' --admin_password='tcosse' --admin_email='tcosse@student.42.fr' --path='/var/www/wordpress'
-
+if [ ! -f /var/www/wordpress/wp-config.php ]; then
+	cp -R /usr/src/wordpress /var/www
+	wp core config --path=/var/www/wordpress --dbhost=${DB_HOST} --dbname=${DB_NAME} --dbuser=${DB_USER} --dbpass=${DB_PW} --allow-root
+	wp core install --path=/var/www/wordpress --url=${WP_URL} --title=${WP_TITLE} --admin_user=${WP_ADMIN_N} --admin_password=${WP_ADMIN_PW} --admin_email=${WP_ADMIN_EMAIL} --skip-email --allow-root
+	wp user create --path=/var/www/wordpress --allow-root ${WP_USER} ${WP_USER_EMAIL} --role=author --user_pass=${WP_USER_PW}
 fi
 
-php-fpm7.3 --nodaemonize
+/usr/sbin/php-fpm7.3 --nodaemonize

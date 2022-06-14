@@ -1,17 +1,15 @@
 FROM debian:buster
 
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update -y && apt-get install mariadb-server -y
 
-RUN apt-get install mariadb-server -y
+RUN sed -i 's/^bind-address/#&/' /etc/mysql/mariadb.conf.d/50-server.cnf
 
-RUN rm /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY ./tool/setup.sh /
 
-COPY tool/50-server.cnf /etc/mysql/mariadb.conf.d
+RUN	chmod 755 /setup.sh
 
-EXPOSE 3306
+VOLUME ["/var/lib/mysql"]
 
-COPY tool/setup.sh .
+EXPOSE	3306
 
-RUN chmod +x setup.sh
-
-ENTRYPOINT ["sh", "/setup.sh"]
+ENTRYPOINT sh setup.sh

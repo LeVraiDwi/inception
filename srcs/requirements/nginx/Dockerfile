@@ -1,22 +1,19 @@
 FROM debian:buster
 
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y nginx openssl
+RUN	apt update -y && apt install nginx openssl -y
+
+COPY /tool/config.conf /etc/nginx/sites-available/default
+
+RUN openssl req -newkey rsa:2048 -nodes -x509 -days 365 \ 
+	-subj "/C=FR/ST=PARIS/L=PARIS/O=tcosse/CN=tcosse.42.fr" \
+	-keyout etc/ssl/key.key  \
+	-out etc/ssl/cert.cert && \
+	chmod 777 /etc/ssl/*
+
+RUN	chown -R www-data /var/www/
+
+VOLUME [ "/var/www/" ]
 
 EXPOSE 443
-WORKDIR /tmp/build/
 
-RUN rm /etc/nginx/sites-available/default
-RUN rm /etc/nginx/sites-enabled/default
-COPY ./tool/nginx.conf /etc/nginx/sites-available/default
-RUN ln -fs /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-
-RUN mkdir -p /etc/nginx/ssl/
-
-RUN openssl req -newkey rsa:2048 -sha256 -x509 -days 365 -nodes -out /etc/nginx/ssl/tcosse.42.fr.crt -keyout /etc/nginx/ssl/tcosse.42.fr.key -subj "/C=FR/ST=Paris/CN=tcosse"
-
-RUN chmod 777 /etc/nginx/ssl/*
-RUN chmod -R 777 /var/www/
-RUN chown -R www-data:www-data /var/www/
-
-CMD nginx -g 'daemon off;'
+CMD	["nginx","-g","daemon off;"]
